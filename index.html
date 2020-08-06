@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>PutMeThere</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+	</head>
+	<body>
+		<div id="app" v-on:mouseup="release()">
+			<table class="board noselect" :class="isHolding()?'on-board-grabbing':'on-board-not-grabbing'">
+				<tr class="row" v-for="(row, i) in grid">
+					<td class="cell" :id="i+'-'+j" v-for="(cell, j) in row" v-on:mousedown="grab(i,j)" v-on:mouseup="release(i,j)" ondragstart="drag(event)">
+						<div v-if="isGrabbedCell(i, j)">
+							<img class="char" src="img/pineapple-character/svg/006-ghost.svg">
+						</div>
+						<div v-else-if="cell==1">
+							<img class="char" src="img/pineapple-character/svg/001-happy.svg">
+						</div>
+						
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+		<script src="js/disableDefaultDrag.js"></script>
+		<script src="js/audioController.js"></script>
+		<script src="js/main.js"></script>
+	</body>
+</html>
