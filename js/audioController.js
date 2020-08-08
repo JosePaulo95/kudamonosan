@@ -6,7 +6,7 @@ audios["grab_nothing"] = new Audio('audio/kenney_interfacesounds/Audio/click_001
 audios["release"] = new Audio('audio/kenney_interfacesounds/Audio/drop_001.ogg');
 audios["error"] = new Audio('audio/kenney_interfacesounds/Audio/error_005.ogg');
 
-let bg_is_playing = false;
+let bg_is_playing = true;
 
 let AudioController = {
 	playSound: function (name, is_muted) {

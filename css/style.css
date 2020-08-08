@@ -25,3 +25,12 @@
 #app{
   height: 100vh;
 }
+.cell-to-the-right{
+  position: relative;
+  animation-name: toTheRight;
+  animation-duration: 1s;
+}
+@keyframes toTheRight {
+  from {left: 0%;}
+  to {left: 100%;}
+}
