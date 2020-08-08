@@ -55,34 +55,41 @@ var App = new Vue({
 
       this.grabbedCell = null;
     },
-    animateCell(i, j, is_disabled){
-      if(!is_disabled){
-        let elm = document.getElementById("cell-"+i+"-"+j);
-        //elm.classList.add("cell-to-the-right");
-        anime({
-          targets: "#cell-"+i+"-"+j,
+    moveRow(index, sense){
+      if(!this.is_testing){
+        let a = anime({
+          targets: '.row-'+index,
           translateX: {
-            value: 250,
+            value: sense*103+"%",
             duration: 800
-          },
-          rotate: {
-            value: 360,
-            duration: 1800,
-            easing: 'easeInOutSine'
-          },
-          scale: {
-            value: 2,
-            duration: 1600,
-            delay: 800,
-            easing: 'easeInOutQuart'
-          },
-          delay: 250 // All properties except 'scale' inherit 250ms delay
+          },  
+          complete: function(anim) {
+            a.seek(0);
+            this.updateGridRow(index, sense);            
+          }.bind(this)
         });
+
+      }else{
+        this.updateGridRow(index, sense);
       }
     },
-    moveRow(index, sense){
+    moveColumn(index, sense){
+      if(!this.is_testing){
+        let a = anime({
+          targets: '.column-'+index,
+          translateY: {
+            value: sense*103+"%",
+            duration: 800
+          },  
+          complete: function(anim) {
+            a.seek(0);
+            this.updateGridColumn(index, sense);            
+          }.bind(this)
+        });
 
-      this.updateGridRow(index, sense);
+      }else{
+        this.updateGridColumn(index, sense);
+      }
     },
     updateGridRow(index, sense){
       let a = this.grid[index][0];
@@ -93,15 +100,15 @@ var App = new Vue({
         this.grid[index][0] = c;
         this.grid[index][1] = a;
         this.grid[index][2] = b;
-
-        this.animateCell(index, 0, this.is_testing);
       }else{
         this.grid[index][0] = b;
         this.grid[index][1] = c;
         this.grid[index][2] = a;
       }
+
+      Vue.set(this.grid, index, this.grid[index])
     },
-    moveColumn(index, sense){
+    updateGridColumn(index, sense){
       let a = this.grid[0][index];
       let b = this.grid[1][index];
       let c = this.grid[2][index];
@@ -114,6 +121,9 @@ var App = new Vue({
         this.grid[1][index] = c;
         this.grid[2][index] = a;
       }
+      Vue.set(this.grid, 0, this.grid[0])
+      Vue.set(this.grid, 1, this.grid[1])
+      Vue.set(this.grid, 2, this.grid[2])
     },
     isGrabbedCell(i, j){
       return this.grabbedCell != null && this.grabbedCell.i == i && this.grabbedCell.j == j;

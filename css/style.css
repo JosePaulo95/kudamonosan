@@ -25,12 +25,9 @@
 #app{
   height: 100vh;
 }
-.cell-to-the-right{
-  position: relative;
-  animation-name: toTheRight;
-  animation-duration: 1s;
+tr td{
+  padding: 0;
 }
-@keyframes toTheRight {
-  from {left: 0%;}
-  to {left: 100%;}
+table{
+  border-spacing: 2%;
 }

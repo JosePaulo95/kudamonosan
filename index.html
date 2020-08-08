@@ -10,13 +10,10 @@
 			<table class="board noselect" :class="isHolding()?'on-board-grabbing':'on-board-not-grabbing'">
 				<tr class="row" v-for="(row, i) in grid">
 					<td class="cell" v-for="(cell, j) in row" v-on:mousedown="grab(i,j)" v-on:mouseup="release(i,j)" ondragstart="drag(event)">
-						<div :id="'cell-'+i+'-'+j" v-if="isGrabbedCell(i, j)">
-							<img class="char" src="img/pineapple-character/svg/006-ghost.svg">
+						<div :class="'cell-'+i+'-'+j+' row-'+i+' column-'+j">
+							<img v-if="isGrabbedCell(i, j)" class="char" src="img/pineapple-character/svg/006-ghost.svg">
+							<img v-else-if="cell>=1" class="char" :src="spriteByCode(cell)">
 						</div>
-						<div :id="'cell-'+i+'-'+j" v-else-if="cell>=1">
-							<img class="char" :src="spriteByCode(cell)">
-						</div>
-						
 					</td>
 				</tr>
 			</table>
