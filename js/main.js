@@ -11,7 +11,8 @@ var App = new Vue({
         i: null,
         j: null
       },
-      is_testing: false
+      is_testing: false,
+      cell_to_circulate_code: 0
     }
   },
   beforeMount(){
@@ -20,6 +21,8 @@ var App = new Vue({
   mounted(){
     this.runTests(); 
     this.grid = this.createInitialGrid();
+
+    this.animeSetPos(".cell-rubik-aux-parent", 1, -2);
     //this.fill(2,2)
   },
   computed: {
@@ -55,40 +58,112 @@ var App = new Vue({
 
       this.grabbedCell = null;
     },
-    moveRow(index, sense){
-      if(!this.is_testing){
-        let a = anime({
-          targets: '.row-'+index,
-          translateX: {
-            value: sense*103+"%",
-            duration: 800
-          },  
-          complete: function(anim) {
-            a.seek(0);
-            this.updateGridRow(index, sense);            
-          }.bind(this)
-        });
+    animeHorizontally(target, direction_points=[0, 1], callback=null){
+      let duration = 500;
 
-      }else{
+      anime({
+        targets: target,
+        translateX: {
+          value: [direction_points[0]*103+"%", direction_points[1]*103+"%"],
+          duration: duration
+        },
+        /*
+        opacity: {
+          value: [0, 1],
+          duration: duration
+        },
+        */
+        complete: function(anim) {
+          anime.set(target, {
+            translateX: 0,
+            translateY: 0,
+          });
+          if(callback){
+            callback.call();
+          }
+        }
+      });
+    },
+    animeVertically(target, direction_points=[0, 1], callback=null){
+      let duration = 500;
+
+      anime({
+        targets: target,
+        translateY: {
+          value: [direction_points[0]*103+"%", direction_points[1]*103+"%"],
+          duration: duration
+        },
+        /*
+        opacity: {
+          value: [0, 1],
+          duration: duration
+        },
+        */
+        complete: function(anim) {
+          anime.set(target, {
+            translateX: 0,
+            translateY: 0,
+          });
+          if(callback){
+            callback.call();
+          }
+        }
+      });
+    },
+    moveRow(index, sense){
+      let cell_do_meio = '.cell-'+index+'-1';
+      let cell_lateral_normal = '.cell-'+index+'-'+(1-sense);
+      let cell_to_circulate = '.cell-'+index+'-'+(1+sense);
+      let cell_aux_rubik = ".cell-rubik-aux";
+      this.cell_to_circulate_code = this.grid[index][1+sense]
+
+      let callbackFunc = function updateRow() {
         this.updateGridRow(index, sense);
+        this.setDisplay(".cell-rubik-aux-parent", false);
+      }.bind(this)
+
+      if(!this.is_testing){        
+        this.animeHorizontally(cell_lateral_normal, [0, sense]);
+        this.animeHorizontally(cell_do_meio,        [0, sense]);
+        this.animeHorizontally(cell_to_circulate,   [-3*sense, -2*sense], callbackFunc.bind(this));
+        this.animeSetPos(cell_aux_rubik, 0, index-1);
+        this.setDisplay(".cell-rubik-aux-parent", true);
+        this.animeHorizontally(cell_aux_rubik,      [sense, sense*2]);
+      }else{
+        callbackFunc();
       }
     },
+    setDisplay(target, show){
+      document.getElementsByClassName('cell-rubik-aux-parent')[0].style.display = show?"block":"none";
+    },
+    animeSetPos(target, x, y){
+      anime.set(target, {
+        translateX: x*103+"%",
+        translateY: y*103+"%"
+      });
+    },
     moveColumn(index, sense){
-      if(!this.is_testing){
-        let a = anime({
-          targets: '.column-'+index,
-          translateY: {
-            value: sense*103+"%",
-            duration: 800
-          },  
-          complete: function(anim) {
-            a.seek(0);
-            this.updateGridColumn(index, sense);            
-          }.bind(this)
-        });
+      let cell_do_meio = '.cell-1-'+index;
+      let cell_lateral_normal = '.cell-'+(1-sense)+'-'+index;
+      let cell_to_circulate = '.cell-'+(1+sense)+'-'+index;
+      let cell_aux_rubik = ".cell-rubik-aux";
 
-      }else{
+      this.cell_to_circulate_code = this.grid[1+sense][index]
+
+      let callbackFunc = function updateRow() {
         this.updateGridColumn(index, sense);
+        this.setDisplay(".cell-rubik-aux-parent", false);
+      }.bind(this)
+
+      if(!this.is_testing){        
+        this.animeVertically(cell_lateral_normal, [0, sense]);
+        this.animeVertically(cell_do_meio,        [0, sense]);
+        this.animeVertically(cell_to_circulate,   [-3*sense, -2*sense], callbackFunc.bind(this));
+        this.animeSetPos(cell_aux_rubik, index-1, 0);
+        this.setDisplay(".cell-rubik-aux-parent", true);
+        this.animeVertically(cell_aux_rubik,      [sense, sense*2]);
+      }else{
+        callbackFunc();
       }
     },
     updateGridRow(index, sense){
