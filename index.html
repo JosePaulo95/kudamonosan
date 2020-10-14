@@ -11,6 +11,7 @@
 				<tr class="row" v-for="(row, i) in grid">
 					<td class="cell" v-for="(cell, j) in row" v-on:mousedown="grab(i,j)" v-on:mouseup="release(i,j)" ondragstart="drag(event)">
 						<div :class="'cell-'+i+'-'+j+' row-'+i+' column-'+j">
+							{{i}},{{j}}
 							<img v-if="isGrabbedCell(i, j)" class="char" src="img/pineapple-character/svg/006-ghost.svg">
 							<img v-else-if="cell>=1" class="char" :src="spriteByCode(cell)">
 						</div>
@@ -20,6 +21,7 @@
 					<td class="cell">
 						<div class="cell-rubik-aux-parent">
 							<div class="cell-rubik-aux">
+								+_+_+
 								<img class="char" src="img/pineapple-character/svg/041-wrestler.svg" :src="spriteByCode(cell_to_circulate_code)">
 							</div>
 						</div>
@@ -82,8 +84,12 @@
 		<script src="js/disableDefaultDrag.js"></script>
 		<script src="js/audioController.js"></script>
 		<script src="js/spriteManager.js"></script>
+		<script src="js/switcher.js"></script>
+
 		<script src="js/uTests/grabDropTests.js"></script>
 		<script src="js/uTests/rubikTests.js"></script>
+		<script src="js/uTests/switcherTests.js"></script>
+
 		<script src="js/main.js"></script>
 	</body>
 </html>

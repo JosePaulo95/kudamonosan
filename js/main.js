@@ -41,56 +41,61 @@ var App = new Vue({
         if(i==null && j==null){//quer dizer q nenhuma celula recebeu o release, deve ter sido fora
           AudioController.playSound("error", this.is_testing);
         }else if(i==this.grabbedCell.i && j==this.grabbedCell.j){
-          AudioController.playSound("release", this.is_testing);
+          //AudioController.playSound("release", this.is_testing);
         }else{
           let movement_on_same_row = (i == this.grabbedCell.i);
           let diference = (this.grabbedCell.i-i)+(this.grabbedCell.j-j);
           let sense = diference==-1||diference==2?+1:-1;
 
           if(movement_on_same_row){
-            this.moveRow(i, sense);
+            
+            this.moveLine("row", i, sense);
           }else{
-            this.moveColumn(j, sense);
+            
+            this.moveLine("column", j, sense);
           }
+
           AudioController.playSound("release", this.is_testing);
         }
       }
 
       this.grabbedCell = null;
     },
-    animeHorizontally(target, direction_points=[0, 1], callback=null){
+    animeResize(target, scale_points=[1,1]){
+      let duration = 2000;
+
+      anime({
+        targets: target,
+        scale: {
+          value: [scale_points[0], scale_points[1]],
+          duration: duration
+        },
+        /*
+        opacity: {
+          value: [0, 1],
+          duration: duration
+        },
+        */
+        complete: function(anim) {
+          anime.set(target, {
+            scale: 1
+          });
+        }
+      });
+    },
+    animeTranslate(target, x_direction_points=[0, 0], y_direction_points=[0, 0], callback=null){
       let duration = 500;
+
+      //console.log(y_direction_points);
 
       anime({
         targets: target,
         translateX: {
-          value: [direction_points[0]*103+"%", direction_points[1]*103+"%"],
+          value: [x_direction_points[0]*103+"%", x_direction_points[1]*103+"%"],
           duration: duration
         },
-        /*
-        opacity: {
-          value: [0, 1],
-          duration: duration
-        },
-        */
-        complete: function(anim) {
-          anime.set(target, {
-            translateX: 0,
-            translateY: 0,
-          });
-          if(callback){
-            callback.call();
-          }
-        }
-      });
-    },
-    animeVertically(target, direction_points=[0, 1], callback=null){
-      let duration = 500;
-
-      anime({
-        targets: target,
         translateY: {
-          value: [direction_points[0]*103+"%", direction_points[1]*103+"%"],
+          value: [y_direction_points[0]*103+"%", y_direction_points[1]*103+"%"],
           duration: duration
         },
         /*
@@ -110,25 +115,31 @@ var App = new Vue({
         }
       });
     },
-    moveRow(index, sense){
-      let cell_do_meio = '.cell-'+index+'-1';
-      let cell_lateral_normal = '.cell-'+index+'-'+(1-sense);
-      let cell_to_circulate = '.cell-'+index+'-'+(1+sense);
-      let cell_aux_rubik = ".cell-rubik-aux";
-      this.cell_to_circulate_code = this.grid[index][1+sense]
+    moveLine(direction_code, index, sense){
+      if(direction_code == "row"){
+        swit.default();
+      }else{
+        swit.invert();
+      }
 
-      let callbackFunc = function updateRow() {
-        this.updateGridRow(index, sense);
+      let cell_do_meio = '.cell-'+swit(index, 1)+'-'+swit(index, 1);
+      let cell_lateral_normal = '.cell-'+swit(index, 1-sense)+'-'+swit(index, 1-sense);
+      let cell_to_circulate = '.cell-'+swit(index, 1+sense)+'-'+swit(index, 1+sense);
+      let cell_aux_rubik = ".cell-rubik-aux";
+      this.cell_to_circulate_code = this.grid[swit(index, 1+sense)][swit(index, 1+sense)]
+
+      let callbackFunc = function () {
+        this.updateOnGrid(direction_code, index, sense);  
         this.setDisplay(".cell-rubik-aux-parent", false);
       }.bind(this)
 
       if(!this.is_testing){        
-        this.animeHorizontally(cell_lateral_normal, [0, sense]);
-        this.animeHorizontally(cell_do_meio,        [0, sense]);
-        this.animeHorizontally(cell_to_circulate,   [-3*sense, -2*sense], callbackFunc.bind(this));
-        this.animeSetPos(cell_aux_rubik, 0, index-1);
-        this.setDisplay(".cell-rubik-aux-parent", true);
-        this.animeHorizontally(cell_aux_rubik,      [sense, sense*2]);
+        this.animeTranslate(cell_lateral_normal, swit([0, sense], [0, 0]), swit([0, sense], [0, 0]));
+        this.animeTranslate(cell_do_meio,        swit([0, sense], [0, 0]), swit([0, sense], [0, 0]));
+        this.animeTranslate(cell_to_circulate,   swit([-3*sense, -2*sense], [0, 0]), swit([-3*sense, -2*sense], [0, 0]), callbackFunc.bind(this));
+        this.animeSetPos(cell_aux_rubik, swit(0, index-1), swit(0, index-1));
+        this.setDisplay(".cell-rubik-aux-parent", false);
+        this.animeTranslate(cell_aux_rubik,      swit([sense, sense*2], [0, 0]), swit([sense, sense*2], [0, 0]));
       }else{
         callbackFunc();
       }
@@ -142,29 +153,14 @@ var App = new Vue({
         translateY: y*103+"%"
       });
     },
-    moveColumn(index, sense){
-      let cell_do_meio = '.cell-1-'+index;
-      let cell_lateral_normal = '.cell-'+(1-sense)+'-'+index;
-      let cell_to_circulate = '.cell-'+(1+sense)+'-'+index;
-      let cell_aux_rubik = ".cell-rubik-aux";
-
-      this.cell_to_circulate_code = this.grid[1+sense][index]
-
-      let callbackFunc = function updateRow() {
-        this.updateGridColumn(index, sense);
-        this.setDisplay(".cell-rubik-aux-parent", false);
-      }.bind(this)
-
-      if(!this.is_testing){        
-        this.animeVertically(cell_lateral_normal, [0, sense]);
-        this.animeVertically(cell_do_meio,        [0, sense]);
-        this.animeVertically(cell_to_circulate,   [-3*sense, -2*sense], callbackFunc.bind(this));
-        this.animeSetPos(cell_aux_rubik, index-1, 0);
-        this.setDisplay(".cell-rubik-aux-parent", true);
-        this.animeVertically(cell_aux_rubik,      [sense, sense*2]);
+    updateOnGrid(direction_code, index, sense){
+      if(direction_code == "column"){
+        this.updateGridColumn(index, sense);  
+        this.checkExecuteMatch(null, index);
       }else{
-        callbackFunc();
-      }
+        this.updateGridRow(index, sense);    
+        this.checkExecuteMatch(index, null);
+      }    
     },
     updateGridRow(index, sense){
       let a = this.grid[index][0];
@@ -180,7 +176,6 @@ var App = new Vue({
         this.grid[index][1] = c;
         this.grid[index][2] = a;
       }
-
       Vue.set(this.grid, index, this.grid[index])
     },
     updateGridColumn(index, sense){
@@ -259,6 +254,106 @@ var App = new Vue({
 
         return stack.slice(stack.length-1-desired_size, stack.length-1);
     },
+    evoluteCell(index_row, index_col){
+      //console.log("evoluindo "+index_row+" "+index_col)
+      this.grid[index_row][index_col]++;
+      //this.updateGridRow(index_row);
+    },
+    deriveMatchedCellsBehavior(grid, index_moved_row, index_moved_column){
+      let matched_columns;
+      let matched_rows;
+
+      if(index_moved_row != null){
+        swit.default();
+      }else if(index_moved_column != null){
+        swit.invert();
+      }else{
+        return;
+      }
+
+      let index_moved_line = swit(index_moved_row, index_moved_column);
+      swit();
+
+      matched_lines_indexes = swit(this.findMatchedColumns(grid), this.findMatchedRows(grid));
+      swit();
+
+      let combining = [];
+      let evolving = [];
+      matched_lines_indexes.map(function(match_index) {  
+        for (var i = 0; i < 3; i++) {
+          if(i != index_moved_line){
+            combining.push({
+              i: swit(i, match_index),
+              j: swit(i, match_index),
+              x: swit(0, index_moved_line-i),
+              y: swit(0, index_moved_line-i)
+            });
+          }else{
+            evolving.push({
+              i: swit(i, match_index),
+              j: swit(i, match_index)
+            });
+          }
+        }
+      })
+      return {combining, evolving};
+      //if moved row
+      //checa todas as colunas com match
+      //pra cada retorna o endereço das complementares
+      //if moved colum
+      //checa todas as rows com match
+      //pra cada retorna o endereço das complementares
+    },
+    checkExecuteMatch(index_moved_row, index_moved_column){
+      if(this.thereIsMatch3x3(this.grid)){
+        let cells = this.deriveMatchedCellsBehavior(this.grid, index_moved_row, index_moved_column);
+        let combining = cells.combining;
+        let evolving = cells.evolving;
+
+        console.log(evolving)
+
+        for (var i = 0; i < combining.length; i++) {
+          if(!this.is_testing){
+            let target = "cell-"+combining[i].i+"-"+combining[i].j;
+            document.getElementsByClassName(target)[0].parentElement.style.zIndex = 10;
+            this.animeTranslate("."+target, [0, combining[i].x], [0, combining[i].y]);
+          }
+        }
+
+        for (var i = 0; i < evolving.length; i++) {
+          if(!this.is_testing){
+            let cell_aux_rubik = ".cell-rubik-aux";
+            this.animeTranslate(cell_aux_rubik, [sense, sense*2], [0, 0]);
+            //this.setDisplay(".cell-rubik-aux-parent", false);
+            //this.animeTranslate(cell_aux_rubik,      swit([sense, sense*2], [0, 0]), swit([sense, sense*2], [0, 0]));
+            //let target = "cell-"+evolving[i].i+"-"+evolving[i].j;
+            //document.getElementsByClassName(target)[0].parentElement.style.zIndex = 15;
+            this.animeResize(cell_aux_rubik, [1, 1.5]);
+          }
+        }
+      }
+      
+      /*
+      //console.log("checando match dps de mover "+(index_moved_row!=null?"row":"column")+" "+(index_moved_row!=null?index_moved_row:index_moved_column))
+      if(this.thereIsMatch3x3(this.grid)){
+        //console.log("tem um match")
+        let index_matched_column;
+        let index_matched_row;
+
+        if(index_moved_row != null){
+          //console.log("checando matched Column")
+          index_matched_column = this.findMatchedColumn(this.grid);
+          //this.evoluteCell(index_moved_row, index_matched_column);
+        }else if(index_moved_column != null){
+          //console.log("checando matched Row")
+          index_matched_row = this.findMatchedRow(this.grid);
+          //this.evoluteCell(index_matched_row, index_moved_column);
+        }
+      }else{
+        //console.log("nao tem match")
+      }
+      */
+    },
     thereIsMatch3x3(grid){
       for (var i = 0; i < 3; i++) {
         if(grid[i][0] == grid[i][1] && grid[i][1] == grid[i][2]){
@@ -269,6 +364,24 @@ var App = new Vue({
         }
       }
       return false;
+    },
+    findMatchedRows(grid){
+      let indexes = [];
+      for (var i = 0; i < 3; i++) {
+        if(grid[i][0] == grid[i][1] && grid[i][1] == grid[i][2]){
+          indexes.push(i);
+        }
+      }
+      return indexes;
+    },
+    findMatchedColumns(grid){
+      let indexes = [];
+      for (var i = 0; i < 3; i++) {
+        if(grid[0][i] == grid[1][i] && grid[1][i] == grid[2][i]){
+          indexes.push(i);
+        }
+      }
+      return indexes;
     },
     thereIsMove(grid){
       let m00 = grid[0][0];
@@ -331,6 +444,7 @@ var App = new Vue({
       this.is_testing = true;
       runGrabDropTests(this);
       runRubikTests(this);
+      runSwitcherTests();
 
       this.is_testing = false;
     }

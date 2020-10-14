@@ -8,9 +8,59 @@ function runRubikTests(context) {
   console.assert(thereIsMoveIndicatesNegativeCases.call(context), "thereIsMoveIndicatesNegativeCases");
   //gameplay
   console.assert(nullMoveChangesNothing.call(context), "nullMoveChangesNothing");
-  console.assert(notMatchingMovesChangesTheGrid.call(context), "notMatchingMovesChangesTheGrid");
+  console.assert(matchedCellsBehaviorIsCorrect.call(context), "matchedCellsBehaviorIsCorrect");
+  //console.assert(notMatchingMovesChangesTheGrid.call(context), "notMatchingMovesChangesTheGrid");
 }
+function matchedCellsBehaviorIsCorrect() {
+  let grid = [
+  [1,2,3],
+  [4,2,6],
+  [7,2,9]];
+  let cells = this.deriveMatchedCellsBehavior(grid, 1, null);
+  let combining = cells.combining;
 
+  if(combining.length != 2){
+    return false;
+  }
+
+  let expected_1 = (cell) => cell.i == 0 && cell.j == 1;
+  let expected_2 = (cell) => cell.i == 2 && cell.j == 1;
+  let not_expected_1 = (cell) => cell.i == 1 && cell.j == 1;
+  let not_expected_2 = (cell) => cell.i == 0 && cell.j == 0;
+
+  console.log(combining)
+
+  if(!(combining.some(expected_1) && combining.some(expected_2))){
+    return false;
+  }
+  if(combining.some(not_expected_1) || combining.some(not_expected_2)){
+    return false;
+  }
+
+  grid = [
+  [2,2,2],
+  [4,1,6],
+  [7,6,9]];
+  cells = this.deriveMatchedCellsBehavior(grid, null, 2);
+  combining = cells.combining;
+
+  if(combining.length != 2){
+    return false;
+  }
+  expected_1 = (cell) => cell.i == 0 && cell.j == 0;
+  expected_2 = (cell) => cell.i == 0 && cell.j == 1;
+  not_expected_1 = (cell) => cell.i == 0 && cell.j == 2;
+  not_expected_2 = (cell) => cell.i == 1 && cell.j == 1;
+
+  if(!(combining.some(expected_1) && combining.some(expected_2))){
+    return false;
+  }
+  if(combining.some(not_expected_1) || combining.some(not_expected_2)){
+    return false;
+  }
+
+  return true;
+}
 function notMatchingMovesChangesTheGrid() {
   this.grid = [[1,2,3], [4,5,6], [7,8,9]]//this.createInitialGrid();
   this.grab(1,0);

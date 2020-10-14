@@ -34,3 +34,6 @@ tr td{
 table{
   border-spacing: 2%;
 }
+tr {
+  z-index: 5;
+}
